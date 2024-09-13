@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.88.1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/normalize.css">
+
+	<title>DrawSpeech</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+<div class="container" >
+<header role="banner">
+</header>
+<main role="main">
+<article itemscope itemtype="https://schema.org/BlogPosting">
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+	<h2>DrawSpeech</h2>
+      <h3>Expressive Speech Synthesis Using Prosodic Sketches as Control Conditions</h3>
+      [<a href="https://github.com/HappyColor/DrawSpeech_PyTorch">Code</a>] [<a href="https://duck-happy-suddenly.ngrok-free.app">Online Demo</a>]
+
+        <p class="fst-italic mb-0">
+        	<br>
+            Weidong Chen<sup>1</sup>, Shan Yang<sup>2</sup>, Guangzhi Li<sup>2</sup>, Helen Meng<sup>1</sup>, Xixin Wu<sup>1</sup>
+      <p></p>
+        </p>
+        <p><b><sup>1</sup>The Chinese University of Hong Kong</b></p>
+        <p><b><sup>2</sup>Tencent AI Lab</b></p>
+	</div>
+	<p><b>Abstract.</b> Controlling text-to-speech (TTS) systems to synthesize speech with the prosodic characteristics expected by users has attracted much attention. To achieve controllability, current studies focus on two main directions: (1) using reference speech as prosody prompt to guide speech synthesis, and (2) using natural language descriptions to control the generation process. However, finding reference speech that exactly contains the prosody that users want to synthesize takes a lot of effort. Description-based guidance in TTS systems can only determine the overall prosody, which has difficulty in achieving fine-grained prosody control over the synthesized speech. In this paper, we propose DrawSpeech, a sketch-conditioned diffusion model capable of generating speech based on any prosody sketches drawn by users. Specifically, the prosody sketches are fed to DrawSpeech to provide a rough indication of the expected prosody trends. DrawSpeech then recovers the detailed pitch and energy contours based on the coarse sketches and synthesizes the desired speech. Experimental results show that DrawSpeech can generate speech with a wide variety of prosody and can precisely control the fine-grained prosody in a user-friendly manner.
+	</p>
+
+	<p>
+	<b>Contents</b>
+      <ul>
+        <li><a href="#model-overview">System Overview</a></li>
+        <li><a href="#tts-with-sketches-conditions">Speech Synthesis Conditioned on Sketches</a></li>
+		<li><a href="#tts-control">Speech Synthesis with Fine-grained Prosody Control</a></li>
+        <li><a href="#tts-text_only">Speech Synthesis with Text Only</a></li>
+      </ul>
+	</p>
+
+	
+</div>
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">		
+	<h2 id="model-overview" style="text-align: center;">System Overview</h2>
+	<body>
+	<p style="text-align: center;">
+		<img src="pics/framework.jpg" height="400" width="800">
+	</p>
+	</body>
+		<p style="text-align: center;" >
+			<b>Figure 1.</b> Overview structure of the proposed DrawSpeech. Paired speech and text data are used for training. User-supplied text and drawn pitch or energy sketch are used as inputs during inference.
+		</p>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="tts-with-sketches-conditions" style="text-align: center;">Speech Synthesis Conditioned on Sketches</h2>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+				<thead>
+				<tr>
+				<th style="vertical-align : middle;text-align: center">Text</th>
+				<th style="vertical-align : middle;text-align: center">Sketches</th>
+				<th style="vertical-align : middle;text-align: center">FastSpeech 2</th>
+				<th style="vertical-align : middle;text-align: center">NaturalSpeech 2</th>
+				<!-- <th style="vertical-align : middle;text-align: center">FastSpeech 2<br>(Ske)</th> -->
+				<!-- <th style="vertical-align : middle;text-align: center">FastSpeech 2<br>(Con) </th> -->
+				<!-- <th style="vertical-align : middle;text-align: center">NaturalSpeech 2<br>(Ske)</th> -->
+				<!-- <th style="vertical-align : middle;text-align: center">NaturalSpeech 2<br>(Con)</th> -->
+				<th style="vertical-align : middle;text-align: center">DrawSpeech</th>
+				</tr>
+				</thead>
+				<tbody>	
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">It's the first time Hilda has been to our house and Tom introduces her around.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample6_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample6_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample6_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample6_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample6_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample6_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample6_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample6_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample6_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample6_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample6_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample6_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">So what is the campaign about?</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample1_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample1_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample1_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample1_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample1_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample1_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample1_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample1_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample1_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample1_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample1_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample1_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">Decent clothing and bedding, and a diet sufficient to support him.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample3_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample3_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample3_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample3_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample3_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample3_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample3_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample3_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample3_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample3_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample3_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample3_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">His use of those excuses to present himself to the world as a person who was being unfairly treated.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample5_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample5_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample5_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample5_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample5_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample5_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample5_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample5_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample5_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample5_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample5_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample5_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">The judge, in passing sentence of death, told him he richly deserved the punishment.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample10_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample10_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample10_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample10_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample10_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample10_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample10_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample10_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample10_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample10_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample10_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample10_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+	
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">He had a great hostility toward his environment, whatever it happened to be.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample4_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample4_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample4_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample4_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample4_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample4_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample4_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample4_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample4_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample4_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample4_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample4_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">Nothing is impossible to a willing heart.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample9_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample9_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample9_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample9_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample9_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample9_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample9_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample9_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample9_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample9_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample9_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample9_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;" rowspan="2">The army found the people in poverty and left them in comparative wealth.</td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample2_1/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample2_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample2_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample2_1.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample2_1.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample2_1/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/sample2_2/skeleton.png" alt="Sketch Condition"></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/ske_sample2_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/fs2/con_sample2_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/ske_sample2_2.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<!-- <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/ns2/con_sample2_2.wav" autoplay/>Your browser does not support the audio element.</audio></td> -->
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/sample2_2/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+				</tbody>
+			</table>
+		</div>
+</div>
+
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="tts-control" style="text-align: center;">Speech Synthesis with Fine-grained Prosody Control</h2>
+    <br>
+    <h3 id="tts-control-example1" style="text-align: center;">Example 1</h3>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+				<thead>
+				<tr>
+				<th style="vertical-align : middle;text-align: center">Text</th>
+				<th style="vertical-align : middle;text-align: center">Original Audio</th>
+				</tr>
+				</thead>
+				<tbody>	
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;">How about going camping this weekend?</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/flat/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+        <div class="table-responsive pt-3">
+            <table class="table table-hover pt-2">
+                <thead>
+                <tr>
+                <th style="vertical-align : middle;text-align: center">Target</th>
+                <th style="vertical-align : middle;text-align: center">Sketches</th>
+                <th style="vertical-align : middle;text-align: center">DrawSpeech</th>
+                </tr>
+                </thead>
+                <tbody>	
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"how"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/how/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/how/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"about"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/about/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/about/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"going"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/going/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/going/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"camping"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/camping/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/camping/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"this"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/this/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/this/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"weekend"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/weekend/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/weekend/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"going"</i></b> and <b><i>"weekend"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/going_weekend/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/going_weekend/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"about"</i></b> and <b><i>"this"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_camping/about_this/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_camping/about_this/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    <br>
+    <br>
+    <h3 id="tts-control-example2" style="text-align: center;">Example 2</h3>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+				<thead>
+				<tr>
+				<th style="vertical-align : middle;text-align: center">Text</th>
+				<th style="vertical-align : middle;text-align: center">Original Audio</th>
+				</tr>
+				</thead>
+				<tbody>	
+					<tr>
+                        <td style="vertical-align : middle;text-align:center;">I didn't say you stole the money.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/flat/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+        <div class="table-responsive pt-3">
+            <table class="table table-hover pt-2">
+                <thead>
+                <tr>
+                <th style="vertical-align : middle;text-align: center">Target</th>
+                <th style="vertical-align : middle;text-align: center">Sketches</th>
+                <th style="vertical-align : middle;text-align: center">DrawSpeech</th>
+                </tr>
+                </thead>
+                <tbody>	
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"didn’t"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/did/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/did/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"say"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/say/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/say/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"you"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/you/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/you/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the word <b><i>"stole"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/stole/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/stole/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"say"</i></b> and <b><i>"money"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/say_money/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/say_money/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"say"</i></b> and <b><i>"you"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/say_you/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/say_you/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"didn't"</i></b> and <b><i>"stole"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/M/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/M/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align : middle;text-align:center;">Emphasis on the words <b><i>"I"</i></b>, <b><i>"stole"</i></b> and <b><i>"money"</i></b></td>
+                        <td style="vertical-align : middle;text-align:center;"><img src="audios/drawspeech/precise_control_money/W/skeleton.png" alt="Sketch Condition"></td>
+                        <td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/drawspeech/precise_control_money/W/audio.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+</div>
+
+
+
+
+<div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+	<h2 id="tts-text_only" style="text-align: center;">Speech Synthesis with Text Only</h2>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+				<thead>
+				<tr>
+				<th style="vertical-align : middle;text-align: center">Text</th>
+				<th style="vertical-align : middle;text-align: center">Ground Truth</th>
+				<th style="vertical-align : middle;text-align: center">FastSpeech 2</th>
+				<th style="vertical-align : middle;text-align: center">NaturalSpeech 2</th>
+				<th style="vertical-align : middle;text-align: center">DrawSpeech</th>
+				</tr>
+				</thead>
+				<tbody>	
+                    <tr>
+						<td style="vertical-align : middle;text-align:center;">The wardsman still exacted dues, of which more directly.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/gt/LJ006-0081.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/fs2/The_wardsman_still_exacted_dues,_of_which_more_directly..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/ns2/The_wardsman_still_exacted_dues,_of_which_more_directly..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/drawspeech/The_wardsman_still_exacted_dues,_of_which_more_directly,__.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;">For examples to a determination of the optimum organization of the President's protection.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/gt/LJ049-0210.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/fs2/for_examples_to_a_determination_of_the_optimum_organization_of_the_President's_protection..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/ns2/for_examples_to_a_determination_of_the_optimum_organization_of_the_President's_protection..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/drawspeech/for_examples_to_a_determination_of_the_optimum_organization_of_the_President's_protection__.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;">And through all ate heartily at every meal, slept soundly at nights, and talked with cheerfulness on almost any subject.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/gt/LJ014-0156.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/fs2/and_through_all_ate_heartily_at_every_meal,_slept_soundly_at_nights,_and_talked_with_cheerfulness_on.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/ns2/and_through_all_ate_heartily_at_every_meal,_slept_soundly_at_nights,_and_talked_with_cheerfulness_on.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/drawspeech/and_through_all_ate_heartily_at_every_meal,_slept_soundly_at_nights,_and_talked_with_cheerfulness_on_almost_any_subject__.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+                    <tr>
+						<td style="vertical-align : middle;text-align:center;">Nevertheless, such a breach, in which so many agents participated.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/gt/LJ050-0035.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/fs2/Nevertheless,_such_a_breach,_in_which_so_many_agents_participated..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/ns2/Nevertheless,_such_a_breach,_in_which_so_many_agents_participated..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/drawspeech/Nevertheless,_such_a_breach,_in_which_so_many_agents_participated__.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align : middle;text-align:center;">An inquiry was at once set on foot, and the frauds were traced to Watts.</td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/gt/LJ014-0277.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/fs2/An_inquiry_was_at_once_set_on_foot,_and_the_frauds_were_traced_to_Watts..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/ns2/An_inquiry_was_at_once_set_on_foot,_and_the_frauds_were_traced_to_Watts..wav" autoplay/>Your browser does not support the audio element.</audio></td>
+						<td style="vertical-align : middle;text-align:center;"><audio controls="controls" style="width: 190px;"><source src="audios/only_text/drawspeech/An_inquiry_was_at_once_set_on_foot,_and_the_frauds_were_traced_to_Watts__.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+</div>
+
+
+
+
+</article>
+</main>
+</div>
+
+</body>
+</html>
